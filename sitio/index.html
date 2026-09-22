@@ -485,7 +485,7 @@ DB.borrar = function(store,id){
 const S = {
   modo:"contratista", vista:"acceso",
   contratante:null, ruc:null, razonSocial:null,
-  solicitudId:null, claveSST:"",
+  solicitudId:null, claveSST:"", docPendiente:null,
   empresas:[], solicitudes:[], documentos:[]
 };
 
@@ -516,24 +516,50 @@ const ApiLocal = {
   async revisar(d){ await DB.guardar("documentos",d); return d; },
   async acreditar(s){ await DB.guardar("solicitudes",s); return s; },
   async archivo(id){ const d=(await DB.todo("documentos")).find(x=>x.id===id); return (d&&d.blob)||null; },
+  async estadoDocumentos(ids){
+    const t=await DB.todo("documentos");
+    return {documentos:t.filter(d=>ids.indexOf(d.id)>=0)};
+  },
   async accesoSST(){ return {ok:true, requiereClave:false}; }
 };
 
 function errorUsuario(msg, codigo){ const e=new Error(msg); e.usuario=true; e.codigo=codigo||""; return e; }
 
-async function llamar(accion, datos){
-  let r, j;
+const esperar = ms => new Promise(r=>setTimeout(r, ms));
+const LIMITE_ESPERA = 120000;   /* una subida por datos móviles puede tardar */
+const INTENTOS = 3;
+
+/* Todas las acciones del servidor se pueden repetir sin efectos dobles: se identifican
+   por id y el servidor devuelve lo que ya existe. Por eso, si la respuesta se pierde
+   en el camino, reintentar es seguro. */
+async function llamar(accion, datos, intento){
+  intento = intento || 1;
+  const cuerpo = JSON.stringify(Object.assign({accion, modo:S.modo, ruc:S.ruc||"", clave:S.claveSST||""}, datos||{}));
+  const control = new AbortController();
+  const reloj = setTimeout(()=>control.abort(), LIMITE_ESPERA);
+  let texto;
   try{
-    r = await fetch(CFG.API_URL.trim(), {
-      method:"POST", redirect:"follow",
+    const r = await fetch(CFG.API_URL.trim(), {
+      method:"POST", redirect:"follow", signal:control.signal,
       /* text/plain evita la consulta previa (CORS) que Apps Script no responde */
       headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify(Object.assign({accion, modo:S.modo, ruc:S.ruc||"", clave:S.claveSST||""}, datos||{}))
+      body: cuerpo
     });
-  }catch(e){ throw errorUsuario("No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo."); }
-  try{ j = await r.json(); }
-  catch(e){ throw errorUsuario("El servidor respondió de forma inesperada. Si el problema continúa, avisa al área de SST."); }
-  if(!j || !j.ok) throw errorUsuario((j&&j.error)||"El servidor rechazó la operación.", j&&j.codigo);
+    texto = await r.text();
+  }catch(e){
+    clearTimeout(reloj);
+    if(intento < INTENTOS){ await esperar(1200*intento); return llamar(accion, datos, intento+1); }
+    throw errorUsuario("No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo.", "red");
+  }
+  clearTimeout(reloj);
+  let j = null;
+  try{ j = JSON.parse(texto); }catch(e){}
+  if(!j){
+    /* Apps Script a veces devuelve una página en vez de la respuesta; se reintenta */
+    if(intento < INTENTOS){ await esperar(1200*intento); return llamar(accion, datos, intento+1); }
+    throw errorUsuario("El servidor respondió de forma inesperada. Si el problema continúa, avisa al área de SST.", "respuesta");
+  }
+  if(!j.ok) throw errorUsuario(j.error||"El servidor rechazó la operación.", j.codigo);
   return j.datos;
 }
 function aBase64(archivo){
@@ -561,12 +587,23 @@ const ApiRemota = {
   guardarSolicitud(s){ return llamar("solicitud.guardar",{solicitud:s}); },
   async subirDocumento(d, archivo){
     const base64=await aBase64(archivo);
-    return llamar("documento.subir",{documento:d, base64});
+    try{
+      return await llamar("documento.subir",{documento:d, base64});
+    }catch(e){
+      /* El archivo puede haberse guardado aunque la respuesta no llegara:
+         se comprueba antes de dar el documento por perdido. */
+      await esperar(1500);
+      const r = await llamar("documento.estado",{ids:[d.id]}).catch(()=>null);
+      const guardado = r && r.documentos && r.documentos[0];
+      if(guardado) return guardado;
+      throw e;
+    }
   },
   quitarDocumento(id){ return llamar("documento.quitar",{id}); },
   revisar(d){ return llamar("documento.revisar",{id:d.id, revision:d.revision, comentario:d.comentario}); },
   acreditar(s){ return llamar("solicitud.acreditar",{id:s.id, acreditada:s.acreditada}); },
   async archivo(id){ const r=await llamar("documento.archivo",{id}); return base64ABlob(r.base64, r.mime); },
+  estadoDocumentos(ids){ return llamar("documento.estado",{ids}); },
   accesoSST(clave){ return llamar("sst.acceso",{clave}); }
 };
 const API = REMOTO ? ApiRemota : ApiLocal;
@@ -1028,10 +1065,13 @@ function vistaSSTDetalle(){
 }
 
 /* ---------------- modales ---------------- */
-function cerrarModal(){ $("#velo").hidden=true; $("#modal").innerHTML=""; }
+function cerrarModal(){ $("#velo").hidden=true; $("#modal").innerHTML=""; S.docPendiente=null; }
 
 function modalAgregar(reqId){
   const s=solicitudActual(); const q=REQUISITOS.find(x=>x.id===reqId);
+  /* El id se fija al abrir el formulario y no cambia si hay que reintentar:
+     así el servidor reconoce el reintento y no duplica el archivo en Drive. */
+  S.docPendiente = {req:reqId, id:uid()};
   const emp=EMPRESAS[s.contratante];
   const campos=(q.campos||[]).map(c=>{
     if(c.tipo==="select")
@@ -1211,13 +1251,14 @@ async function accion(a, b){
     const venc=$("#mVenc")?$("#mVenc").value:"";
     if(q.vence==="obligatorio" && !venc){ err.textContent="La fecha de vencimiento es obligatoria para este documento."; err.classList.remove("oculto"); return; }
     if(q.vence==="emision" && !emi){ err.textContent="La fecha de emisión es obligatoria para este documento."; err.classList.remove("oculto"); return; }
-    const d={id:uid(), solicitudId:S.solicitudId, tipoId:q.id, nombre:f.name, peso:f.size,
+    const d={id:(S.docPendiente && S.docPendiente.req===q.id) ? S.docPendiente.id : uid(),
+             solicitudId:S.solicitudId, tipoId:q.id, nombre:f.name, peso:f.size,
              mime:f.type, meta, emision:emi, vencimiento:venc,
              revision:"pendiente", comentario:"", creado:Date.now()};
     /* si la subida falla, el modal sigue abierto con lo ya escrito */
     b.disabled=true;
     try{
-      const g=await conEspera("Subiendo documento…", ()=>API.subirDocumento(d, f));
+      const g=await conEspera("Subiendo documento… puede tardar unos segundos", ()=>API.subirDocumento(d, f));
       reemplazar(S.documentos, g); cerrarModal(); render(true);
     }catch(e){
       b.disabled=false;

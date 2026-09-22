@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acreditación de contratistas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#F2F3F4; --sup:#FFFFFF; --sup2:#FAFAFB;
+  --tinta:#17191C; --tinta2:#4A4F55; --tinta3:#7A8087;
+  --linea:#DCDFE2; --linea2:#EDEFF1;
+  --marca:#E10600; --marca-osc:#A50400; --marca-suave:#FDEDEA;
+  --cab-fondo:#E10600; --cab-tinta:#FFFFFF; --cab-filete:#8E0300;
+  --ok:#1F6F4A; --ok-bg:#E7F1EB;
+  --alerta:#8A5A00; --alerta-bg:#FAF0DB;
+  --falla:#9A2420; --falla-bg:#F7E5E3;
+  --neutro:#6B7076; --neutro-bg:#ECEEF0;
+  --r:10px; --r-sm:6px;
+  --sans:"Archivo","Helvetica Neue",Arial,sans-serif;
+}
+:root:not([data-theme="light"]){ color-scheme: light; }
+[data-empresa="panaautos"]{
+  --marca:#C40018; --marca-osc:#8A0010; --marca-suave:#FBEBED;
+  --cab-fondo:#1C1E22; --cab-tinta:#FFFFFF; --cab-filete:#C40018;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--papel); color:var(--tinta);
+  font-family:var(--sans); font-variation-settings:"wdth" 100,"wght" 400;
+  font-size:15px; line-height:1.5; -webkit-text-size-adjust:100%;
+}
+h1,h2,h3{margin:0; font-variation-settings:"wdth" 112,"wght" 700; line-height:1.18; letter-spacing:-0.01em}
+h1{font-size:1.65rem}
+h2{font-size:1.15rem}
+h3{font-size:.98rem; font-variation-settings:"wdth" 108,"wght" 650}
+p{margin:0 0 .7rem}
+a{color:var(--marca-osc)}
+button{font-family:inherit; font-size:.9rem; cursor:pointer}
+input,select,textarea{font-family:inherit; font-size:.92rem; color:var(--tinta)}
+input,select,textarea{
+  width:100%; padding:.5rem .6rem; background:var(--sup);
+  border:1px solid var(--linea); border-radius:var(--r-sm); outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--marca); box-shadow:0 0 0 3px var(--marca-suave)}
+:focus-visible{outline:2px solid var(--marca-osc); outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- estructura ---------- */
+.wrap{max-width:980px; margin:0 auto; padding:0 1rem}
+header.top{background:var(--cab-fondo); color:var(--cab-tinta); border-bottom:3px solid var(--cab-filete)}
+header.top .wrap{display:flex; align-items:center; gap:1rem; min-height:60px; flex-wrap:wrap; padding-top:.5rem; padding-bottom:.5rem}
+.marca-txt{font-variation-settings:"wdth" 120,"wght" 800; font-size:1.02rem; letter-spacing:.02em; line-height:1}
+.marca-sub{font-size:.72rem; font-variation-settings:"wdth" 100,"wght" 500; opacity:.82; letter-spacing:.04em}
+.top-sp{flex:1}
+.top-info{font-size:.78rem; text-align:right; opacity:.92; line-height:1.35}
+.modo{display:flex; background:rgba(255,255,255,.16); border-radius:999px; padding:3px}
+.modo button{border:0; background:transparent; color:var(--cab-tinta); padding:.3rem .75rem; border-radius:999px; font-size:.8rem; font-variation-settings:"wght" 600}
+.modo button[aria-pressed="true"]{background:var(--sup); color:var(--tinta)}
+main{padding:1.4rem 0 4rem}
+.card{background:var(--sup); border:1px solid var(--linea); border-radius:var(--r); padding:1.1rem 1.15rem; margin-bottom:1rem}
+.card > h2{margin-bottom:.15rem}
+.sub{color:var(--tinta2); font-size:.86rem}
+.hr{height:1px; background:var(--linea2); margin:.9rem 0}
+
+/* ---------- avisos ---------- */
+.aviso{border-left:3px solid var(--alerta); background:var(--alerta-bg); padding:.65rem .8rem; border-radius:0 var(--r-sm) var(--r-sm) 0; font-size:.85rem; margin:.6rem 0}
+.aviso.info{border-left-color:var(--neutro); background:var(--neutro-bg)}
+.aviso.demo{border-left-color:var(--marca); background:var(--marca-suave)}
+.aviso strong{font-variation-settings:"wght" 650}
+
+/* ---------- formularios ---------- */
+.campo{margin-bottom:.8rem}
+.campo label{display:block; font-size:.8rem; color:var(--tinta2); font-variation-settings:"wght" 600; margin-bottom:.22rem}
+.fila{display:grid; grid-template-columns:1fr 1fr; gap:.8rem}
+.fila3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:.8rem}
+@media(max-width:640px){.fila,.fila3{grid-template-columns:1fr}}
+.hint{font-size:.76rem; color:var(--tinta3); margin-top:.2rem}
+.err{font-size:.78rem; color:var(--falla); margin-top:.2rem; font-variation-settings:"wght" 600}
+.btn{border:1px solid var(--marca); background:var(--marca); color:#fff; padding:.55rem 1.05rem; border-radius:var(--r-sm); font-variation-settings:"wght" 650}
+.btn:hover{background:var(--marca-osc); border-color:var(--marca-osc)}
+.btn.sec{background:var(--sup); color:var(--tinta); border-color:var(--linea)}
+.btn.sec:hover{background:var(--sup2); border-color:var(--tinta3)}
+.btn.sm{padding:.34rem .7rem; font-size:.82rem}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.acciones{display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1rem}
+
+/* ---------- selección de empresa ---------- */
+.placas{display:grid; grid-template-columns:1fr 1fr; gap:.9rem; margin:1rem 0}
+@media(max-width:640px){.placas{grid-template-columns:1fr}}
+.placa{text-align:left; background:var(--sup); border:1px solid var(--linea); border-radius:var(--r); padding:1rem; display:block; width:100%}
+.placa:hover{border-color:var(--tinta3)}
+.placa[aria-pressed="true"]{border-color:var(--marca); box-shadow:inset 3px 0 0 var(--marca)}
+.placa .pn{font-variation-settings:"wdth" 118,"wght" 800; font-size:1.05rem}
+.placa .pd{font-size:.8rem; color:var(--tinta2); margin-top:.15rem}
+
+/* ---------- medidor ---------- */
+.medidor{display:flex; gap:.5rem; flex-wrap:wrap; margin:.7rem 0 0}
+.med-seg{flex:1 1 118px; border:1px solid var(--linea); border-radius:var(--r-sm); padding:.5rem .6rem; background:var(--sup2)}
+.med-seg .mt{font-size:.74rem; color:var(--tinta2); font-variation-settings:"wght" 600}
+.med-seg .mv{font-size:1.2rem; font-variation-settings:"wdth" 110,"wght" 700}
+.barra{height:5px; background:var(--linea2); border-radius:3px; overflow:hidden; margin-top:.35rem}
+.barra i{display:block; height:100%; background:var(--ok)}
+
+/* ---------- secciones de documentos ---------- */
+.secc{margin-bottom:1.1rem}
+.secc-cab{display:flex; align-items:baseline; gap:.6rem; padding:.2rem 0 .55rem}
+.secc-cab h2{flex:1}
+.doc{background:var(--sup); border:1px solid var(--linea); border-left:3px solid var(--neutro); border-radius:0 var(--r) var(--r) 0; padding:.8rem .9rem; margin-bottom:.65rem}
+.doc[data-est="ok"]{border-left-color:var(--ok)}
+.doc[data-est="alerta"]{border-left-color:var(--alerta)}
+.doc[data-est="falla"]{border-left-color:var(--falla)}
+.doc-cab{display:flex; align-items:flex-start; gap:.6rem}
+.doc-cab h3{flex:1}
+.doc-desc{font-size:.8rem; color:var(--tinta2); margin-top:.15rem}
+.chip{display:inline-block; font-size:.7rem; padding:.15rem .5rem; border-radius:999px; font-variation-settings:"wght" 650; white-space:nowrap; letter-spacing:.01em}
+.chip.ok{background:var(--ok-bg); color:var(--ok)}
+.chip.alerta{background:var(--alerta-bg); color:var(--alerta)}
+.chip.falla{background:var(--falla-bg); color:var(--falla)}
+.chip.neutro{background:var(--neutro-bg); color:var(--neutro)}
+.chip.marca{background:var(--marca-suave); color:var(--marca-osc)}
+.archivos{margin:.6rem 0 0; border-top:1px solid var(--linea2)}
+.arch{display:flex; gap:.6rem; align-items:flex-start; padding:.55rem 0; border-bottom:1px solid var(--linea2); font-size:.85rem}
+.arch .an{flex:1; min-width:0}
+.arch .an b{font-variation-settings:"wght" 620; display:block; overflow-wrap:anywhere}
+.arch .am{color:var(--tinta3); font-size:.76rem}
+.arch .aa{display:flex; gap:.35rem; align-items:center; flex-shrink:0}
+.iconbtn{border:1px solid var(--linea); background:var(--sup); border-radius:var(--r-sm); padding:.22rem .5rem; font-size:.76rem; color:var(--tinta2)}
+.iconbtn:hover{border-color:var(--tinta3)}
+.iconbtn.peligro:hover{color:var(--falla); border-color:var(--falla)}
+.cargar{margin-top:.65rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center}
+.obs{background:var(--alerta-bg); border-radius:var(--r-sm); padding:.5rem .65rem; font-size:.82rem; margin-top:.55rem}
+.obs b{font-variation-settings:"wght" 650}
+.vacio{font-size:.82rem; color:var(--tinta3); padding:.5rem 0}
+.descarga{display:flex; gap:.5rem; flex-wrap:wrap; margin:.55rem 0}
+
+/* ---------- modal ---------- */
+.velo{position:fixed; inset:0; background:rgba(15,17,20,.5); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:50}
+.velo[hidden]{display:none}
+.modal{background:var(--sup); border-radius:var(--r); padding:1.1rem; max-width:520px; width:100%; max-height:88vh; overflow:auto}
+.modal h2{margin-bottom:.6rem}
+
+/* ---------- tabla SST ---------- */
+.tabla{width:100%; border-collapse:collapse; font-size:.86rem}
+.tabla th{text-align:left; font-size:.76rem; color:var(--tinta2); font-variation-settings:"wght" 650; border-bottom:1px solid var(--linea); padding:.45rem .5rem}
+.tabla td{border-bottom:1px solid var(--linea2); padding:.55rem .5rem; vertical-align:top}
+.tabla tr:hover td{background:var(--sup2)}
+.tabla .lnk{border:0; background:none; color:var(--marca-osc); padding:0; font-variation-settings:"wght" 650; text-decoration:underline}
+.oculto{display:none !important}
+/* espera y avisos */
+.toast{position:fixed; left:50%; bottom:1.2rem; transform:translateX(-50%); z-index:80;
+  background:var(--tinta); color:#fff; padding:.6rem 1rem; border-radius:var(--r-sm);
+  font-size:.86rem; max-width:min(92vw,520px); box-shadow:0 6px 24px rgba(0,0,0,.18)}
+.toast[hidden]{display:none}
+.toast.error{background:var(--falla)}
+.toast.info{background:var(--tinta)}
+body.cargando #app{pointer-events:none; opacity:.72}
+body.cargando{cursor:progress}
+.pie{color:var(--tinta3); font-size:.78rem; text-align:center; padding:1.5rem 0 0}
+@media print{
+  header.top,.acciones,.cargar,.modo,.btn,.iconbtn,.aviso.demo{display:none !important}
+  body{background:#fff}
+  .card,.doc{break-inside:avoid; border-color:#999}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div>
+      <div class="marca-txt" id="hdMarca">ACREDITACIÓN DE CONTRATISTAS</div>
+      <div class="marca-sub" id="hdSub">Portal de documentos para proveedores y contratistas</div>
+    </div>
+    <div class="top-sp"></div>
+    <div class="modo" role="group" aria-label="Modo de uso">
+      <button id="modoContratista" aria-pressed="true">Contratista</button>
+      <button id="modoSST" aria-pressed="false">SST</button>
+    </div>
+    <div class="top-info" id="hdInfo"></div>
+  </div>
+</header>
+<main><div class="wrap" id="app"></div></main>
+<div class="velo" id="velo" hidden><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<!-- config.js define APP_CONFIG.API_URL (servidor). Si no existe, la app funciona en modo demostración. -->
+<script src="config.js"></script>
+<script>
+/* ============================================================
+   CATÁLOGO — editable sin tocar la lógica de la aplicación.
+   Cambiar aquí requisitos, sedes o textos.
+   ============================================================ */
+
+const EMPRESAS = {
+  grupopana: {
+    id:"grupopana",
+    nombre:"GRUPO PANA S.A.",
+    descripcion:"Concesionario Toyota",
+    sedes:["Surco","Surquillo","Montero","San Miguel","Callao","Ate","Iquitos","Tacna","Moquegua"],
+    risst:{ archivo:"RISST-GRUPO-PANA.pdf", codigo:"GHS-SSO-DO-003 v03 (15/02/2020)", clave:"risstGP" },
+    cargos:[
+      {id:"cargo-risst",     nombre:"Cargo de entrega del RISST (Anexo 3)"},
+      {id:"cargo-pol-sst",   nombre:"Cargo de recepción de la Política de SST (Anexo 5)"},
+      {id:"cargo-pol-ma",    nombre:"Cargo de recepción de la Política de Medio Ambiente"}
+    ],
+    cargosArchivo:{ archivo:"CARGOS-GRUPO-PANA.pdf", clave:"cargosGP" }
+  },
+  panaautos: {
+    id:"panaautos",
+    nombre:"PANA AUTOS S.A.C.",
+    descripcion:"Concesionario Honda — autos y motos",
+    sedes:["San Isidro","San Miguel","Surquillo 1","Surquillo 3"],
+    risst:{ archivo:"RISST-PANA-AUTOS.pdf", codigo:"PA-SSO-DO-001 v01 (17/09/2021)", clave:"risstPA" },
+    cargos:[
+      {id:"cargo-risst",     nombre:"Cargo de entrega del RISST (Anexo 3)"},
+      {id:"cargo-pol-sst",   nombre:"Cargo de recepción de la Política de SST (Anexo 5)"}
+    ],
+    cargosArchivo:{ archivo:"CARGOS-PANA-AUTOS.pdf", clave:"cargosPA" }
+  }
+};
+
+const TIPOS_ALTO_RIESGO = [
+  {id:"altura",    nombre:"Trabajo en altura (más de 1.8 m)"},
+  {id:"caliente",  nombre:"Trabajo en caliente"},
+  {id:"confinado", nombre:"Espacio confinado"},
+  {id:"electrico", nombre:"Trabajo eléctrico de alta tensión"},
+  {id:"izaje",     nombre:"Izaje de cargas pesadas"},
+  {id:"otro",      nombre:"Otro trabajo de alto riesgo"}
+];
+
+/* Documentos exigidos en todo trabajo de alto riesgo, sea cual sea el tipo.
+   Indicados por el usuario (SST). Encabezan la lista del selector. */
+const ANEXOS_COMUNES = [
+  "PETS — Procedimiento Escrito de Trabajo Seguro de la actividad",
+  "Checklist referencial de verificación, según el trabajo de alto riesgo",
+  "Listado de temas de charlas de 5 minutos"
+];
+
+/* Anexos sugeridos POR TIPO de alto riesgo.
+   OJO: son criterio técnico de referencia, NO la cartilla oficial de la empresa.
+   Reemplazar por el contenido real de la cartilla cuando esté disponible.
+   (Los de ANEXOS_COMUNES, arriba, sí fueron indicados por el usuario.) */
+const ANEXOS_ALTO_RIESGO = {
+  altura:   ["Certificado de capacitación en trabajos en altura","Aptitud médica específica para trabajo en altura","Certificado de inspección de arnés y línea de vida","Procedimiento de rescate en altura"],
+  caliente: ["Certificado de capacitación en trabajos en caliente","Certificado de operatividad del extintor","Procedimiento de trabajos en caliente","Designación del vigía de fuego"],
+  confinado:["Certificado de capacitación en espacios confinados","Certificado de calibración del detector de gases","Procedimiento de rescate en espacio confinado"],
+  electrico:["Certificado de capacitación en riesgo eléctrico","Certificado de equipos y herramientas dieléctricas","Autorización del personal para trabajos en alta tensión"],
+  izaje:    ["Certificado de operatividad del equipo de izaje","Certificado de competencia del operador","Certificado de eslingas, estrobos y accesorios","Plan de izaje"],
+  otro:     ["Documentos indicados en la cartilla de trabajos de alto riesgo"]
+};
+
+/* Definición de requisitos.
+   multiple  : admite varios archivos
+   porPersona: se carga uno por cada trabajador
+   vence     : "obligatorio" | "opcional" | false
+   campos    : campos adicionales por archivo
+   Los IDs no deben cambiarse una vez en uso: identifican los documentos cargados. */
+const REQUISITOS = [
+  /* ---------- SECCIÓN 1 ---------- */
+  {id:"personal", seccion:1, nombre:"Lista de personal autorizado",
+   desc:"Relación del personal que ingresará a la sede. Define cuántos DNI, CAMO y cargos se esperan.",
+   multiple:false, vence:false, campos:[]},
+
+  {id:"dni", seccion:1, nombre:"DNI o Carné de Extranjería vigente",
+   desc:"Una copia por cada trabajador de la lista.",
+   multiple:true, porPersona:true, vence:"opcional", campos:[{k:"titular", n:"Trabajador", req:true}]},
+
+  {id:"sctr", seccion:1, nombre:"Póliza SCTR Salud y Pensión vigente",
+   desc:"Si la póliza cubre ambos riesgos en un mismo documento, cargarla una sola vez. Si están separadas, cargar las dos.",
+   multiple:true, vence:"obligatorio",
+   campos:[{k:"cobertura", n:"Cobertura", tipo:"select",
+            opciones:["Salud y Pensión en un solo documento","Solo Salud","Solo Pensión"], req:true},
+           {k:"aseguradora", n:"Aseguradora"}]},
+
+  {id:"camo", seccion:1, nombre:"Certificado de aptitud médica ocupacional",
+   desc:"Emitido por clínica autorizada por DIGESA o DIRESA. Uno por trabajador. SST verifica la vigencia a partir de la fecha de emisión.",
+   multiple:true, porPersona:true, vence:"emision",
+   campos:[{k:"titular", n:"Trabajador", req:true},{k:"clinica", n:"Clínica emisora", req:true}]},
+
+  {id:"cargos", seccion:1, nombre:"Cargos del RISST y políticas firmados",
+   desc:"Descargar los formatos y hacerlos firmar por cada trabajador. Si el trabajador firma los tres en un mismo juego, puede escanearse como un solo archivo.",
+   multiple:true, porPersona:true, vence:false, descargable:true,
+   campos:[{k:"titular", n:"Trabajador", req:true},
+           {k:"cargos", n:"Documentos incluidos en el archivo", tipo:"cargosMulti", req:true}]},
+
+  {id:"capacitacion", seccion:1, nombre:"Capacitación en seguridad relacionada con la actividad",
+   desc:"Lavado, undercoating, pulido y encerado, u otra actividad a ejecutar. Puede presentarse como certificado por trabajador o como un registro conjunto firmado por todos.",
+   multiple:true, porPersona:true, vence:"opcional", modalidades:true,
+   textoIndividual:"Certificado o constancia por trabajador",
+   textoConjunto:"Registro de capacitación firmado por el personal",
+   campos:[{k:"tema", n:"Tema o actividad", req:true}]},
+
+  {id:"programa-cap", seccion:1, nombre:"Programa anual de capacitación en SST",
+   desc:"Del año en curso, firmado por el responsable.",
+   multiple:false, vence:"opcional", campos:[{k:"anio", n:"Año", tipo:"number"}]},
+
+  {id:"plan-sst", seccion:1, nombre:"Plan anual de seguridad y salud en el trabajo",
+   desc:"Del año en curso, firmado por el responsable.",
+   multiple:false, vence:"opcional", campos:[{k:"anio", n:"Año", tipo:"number"}]},
+
+  {id:"iperc", seccion:1, nombre:"Matriz IPERC del puesto de trabajo",
+   desc:"Identificación de peligros, evaluación de riesgos y determinación de controles, asociada a la actividad que ejecutará.",
+   multiple:true, vence:"opcional", campos:[{k:"actividad", n:"Actividad evaluada"}]},
+
+  {id:"epp", seccion:1, nombre:"Registro de entrega de EPP",
+   desc:"Con firma de quien recibió el equipo. Puede presentarse por trabajador o como un registro conjunto firmado por todo el personal.",
+   multiple:true, porPersona:true, vence:false, modalidades:true,
+   textoIndividual:"Registro de un trabajador",
+   textoConjunto:"Registro conjunto firmado por el personal",
+   campos:[]},
+
+  /* ---------- SECCIÓN 2 ---------- */
+  {id:"revision-tecnica", seccion:2, nombre:"Revisión técnica vigente",
+   desc:"Una por cada vehículo que ingresará a la sede.",
+   multiple:true, vence:"obligatorio", cond:"ingreso",
+   campos:[{k:"placa", n:"Placa", req:true}]},
+
+  {id:"soat", seccion:2, nombre:"SOAT vigente",
+   desc:"Una por cada vehículo que ingresará a la sede.",
+   multiple:true, vence:"obligatorio", cond:"ingreso",
+   campos:[{k:"placa", n:"Placa", req:true}]},
+
+  {id:"licencia", seccion:2, nombre:"Licencia de conducir",
+   desc:"De cada trabajador que conducirá, con la categoría que corresponda al vehículo.",
+   multiple:true, porPersona:true, vence:"obligatorio", cond:"conduce",
+   campos:[{k:"titular", n:"Conductor", req:true},{k:"categoria", n:"Categoría"}]},
+
+  /* ---------- SECCIÓN 3 ---------- */
+  {id:"ats", seccion:3, nombre:"ATS — Análisis de Trabajo Seguro (muestra)",
+   desc:"Muestra del formato que utiliza la empresa, para revisión previa. El ATS del día se entrega firmado en garita, antes de iniciar el trabajo.",
+   multiple:true, vence:false, referencial:true, opcional:true,
+   campos:[{k:"actividad", n:"Actividad"}]},
+
+  {id:"ficha-equipos", seccion:3, nombre:"Ficha técnica de equipos y herramientas",
+   desc:"Con certificado de operatividad o de mantenimiento vigente, por cada equipo que ingresará.",
+   multiple:true, vence:"opcional", cond:"equipos",
+   campos:[{k:"equipo", n:"Equipo o herramienta", req:true}]},
+
+  {id:"petar", seccion:3, nombre:"PETAR — Permiso Escrito de Trabajo de Alto Riesgo (muestra)",
+   desc:"Muestra del formato que utiliza la empresa. El permiso operativo se emite y se entrega en garita el día del trabajo.",
+   multiple:true, vence:false, referencial:true, opcional:true, cond:"altoRiesgo",
+   campos:[{k:"tipo", n:"Tipo de trabajo", tipo:"selectRiesgo", req:true}]},
+
+  {id:"anexos-riesgo", seccion:3, nombre:"Documentos de trabajo de alto riesgo",
+   desc:"PETS, checklist de verificación y listado de temas de charlas de 5 minutos, más lo que exija la cartilla para cada tipo de trabajo declarado.",
+   multiple:true, vence:"opcional", cond:"altoRiesgo",
+   campos:[{k:"tipo", n:"Tipo de trabajo", tipo:"selectRiesgo", req:true},{k:"documento", n:"Documento", tipo:"selectAnexo", req:true}]},
+
+  {id:"msds", seccion:3, nombre:"Hoja de seguridad de productos químicos",
+   desc:"Una por cada producto que ingresará a las instalaciones.",
+   multiple:true, vence:false, cond:"quimicos",
+   campos:[{k:"producto", n:"Producto", req:true}]}
+];
+
+const SECCIONES = [
+  {n:1, titulo:"Documentación obligatoria", nota:"Aplica a toda solicitud, sin excepción."},
+  {n:2, titulo:"Control vehicular",          nota:"Depende de si habrá ingreso de vehículos o conducción."},
+  {n:3, titulo:"Seguridad en la operación",  nota:"Según los equipos, el riesgo y los productos declarados."}
+];
+
+const DIAS_ALERTA = 30;
+</script>
+<script>
+/* ============================================================
+   APLICACIÓN
+   Demo sin servidor: todo ocurre en el navegador de quien prueba.
+   ============================================================ */
+
+
+/* ---------------- utilidades ---------------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const hoy = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+
+function normaliza(t){
+  return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toUpperCase();
+}
+function mayus(t){ return String(t||"").replace(/\s+/g," ").trim().toUpperCase(); }
+
+function rucValido(ruc){
+  if(!/^\d{11}$/.test(ruc)) return false;
+  if(!["10","15","16","17","20"].includes(ruc.slice(0,2))) return false;
+  const f=[5,4,3,2,7,6,5,4,3,2];
+  let s=0; for(let i=0;i<10;i++) s+=parseInt(ruc[i],10)*f[i];
+  let r=11-(s%11); if(r===10) r=0; if(r===11) r=1;
+  return r===parseInt(ruc[10],10);
+}
+
+function fechaTxt(iso){
+  if(!iso) return "—";
+  const [a,m,d]=iso.split("-"); return `${d}/${m}/${a}`;
+}
+function diasPara(iso){
+  if(!iso) return null;
+  const d=new Date(iso+"T00:00:00");
+  return Math.round((d-hoy())/86400000);
+}
+function pesoTxt(b){
+  if(b<1024) return b+" B";
+  if(b<1048576) return (b/1024).toFixed(0)+" KB";
+  return (b/1048576).toFixed(1)+" MB";
+}
+/* La descarga directa funciona al publicar en GitHub Pages, pero no dentro del
+   visor de artefactos de claude.ai, que la intermedia. Se intenta primero la vía
+   del visor y se recurre al enlace directo cuando no está disponible. */
+let _descargas="sin-resolver";
+async function servicioDescarga(){
+  if(_descargas==="sin-resolver"){
+    try{ _descargas = (window.claude && claude.use) ? await claude.use("downloads") : null; }
+    catch(e){ _descargas=null; }
+  }
+  return _descargas;
+}
+async function descargar(blob, nombre){
+  const via=await servicioDescarga();
+  if(via){
+    try{ await via.save({filename:nombre, data:blob}); return; }
+    catch(e){ if(e && (e.code==="declined"||e.code==="rate_limited")) return; }
+  }
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+}
+
+/* ---------------- almacenamiento ---------------- */
+const DB={ db:null, memoria:{empresas:[],solicitudes:[],documentos:[]}, usaMemoria:false };
+
+DB.abrir = function(){
+  return new Promise(res=>{
+    let p;
+    try{ p=indexedDB.open("acreditacion-contratistas",1); }
+    catch(e){ DB.usaMemoria=true; return res(); }
+    p.onupgradeneeded = e => {
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains("empresas"))   db.createObjectStore("empresas",{keyPath:"ruc"});
+      if(!db.objectStoreNames.contains("solicitudes"))db.createObjectStore("solicitudes",{keyPath:"id"});
+      if(!db.objectStoreNames.contains("documentos")) db.createObjectStore("documentos",{keyPath:"id"});
+    };
+    p.onsuccess = e => { DB.db=e.target.result; res(); };
+    p.onerror   = () => { DB.usaMemoria=true; res(); };
+  });
+};
+DB.todo = function(store){
+  if(DB.usaMemoria||!DB.db) return Promise.resolve(DB.memoria[store].slice());
+  return new Promise(res=>{
+    try{
+      const r=DB.db.transaction(store,"readonly").objectStore(store).getAll();
+      r.onsuccess=()=>res(r.result||[]); r.onerror=()=>res([]);
+    }catch(e){ res([]); }
+  });
+};
+DB.guardar = function(store,obj){
+  if(DB.usaMemoria||!DB.db){
+    const a=DB.memoria[store], k=store==="empresas"?"ruc":"id";
+    const i=a.findIndex(x=>x[k]===obj[k]); i>=0?a[i]=obj:a.push(obj);
+    return Promise.resolve();
+  }
+  return new Promise(res=>{
+    try{
+      const t=DB.db.transaction(store,"readwrite"); t.objectStore(store).put(obj);
+      t.oncomplete=()=>res(); t.onerror=()=>res();
+    }catch(e){ res(); }
+  });
+};
+DB.borrar = function(store,id){
+  if(DB.usaMemoria||!DB.db){
+    const k=store==="empresas"?"ruc":"id";
+    DB.memoria[store]=DB.memoria[store].filter(x=>x[k]!==id);
+    return Promise.resolve();
+  }
+  return new Promise(res=>{
+    try{
+      const t=DB.db.transaction(store,"readwrite"); t.objectStore(store).delete(id);
+      t.oncomplete=()=>res(); t.onerror=()=>res();
+    }catch(e){ res(); }
+  });
+};
+
+/* ---------------- estado ---------------- */
+const S = {
+  modo:"contratista", vista:"acceso",
+  contratante:null, ruc:null, razonSocial:null,
+  solicitudId:null, claveSST:"",
+  empresas:[], solicitudes:[], documentos:[]
+};
+
+/* ============================================================
+   CAPA DE DATOS
+   Con APP_CONFIG.API_URL (archivo config.js) los datos van al servidor
+   en Google Apps Script: archivos a Google Drive, registros a una hoja
+   de Google. Sin API_URL la app funciona en modo demostración y guarda
+   todo en este navegador. Ambas implementaciones tienen la misma interfaz.
+   ============================================================ */
+const CFG = window.APP_CONFIG || {};
+const REMOTO = typeof CFG.API_URL==="string" && /^https?:\/\//.test(CFG.API_URL.trim());
+
+const ApiLocal = {
+  async iniciar(){ await DB.abrir(); },
+  async ingresar(ruc, razon){
+    const ex=(await DB.todo("empresas")).find(e=>e.ruc===ruc);
+    if(ex) return {estado: normaliza(ex.razonSocial)===normaliza(razon)?"existente":"conflicto", razonSocial:ex.razonSocial};
+    await DB.guardar("empresas",{ruc, razonSocial:razon, creado:Date.now()});
+    return {estado:"nuevo", razonSocial:razon};
+  },
+  async cargar(){
+    return {empresas:await DB.todo("empresas"), solicitudes:await DB.todo("solicitudes"), documentos:await DB.todo("documentos")};
+  },
+  async guardarSolicitud(s){ await DB.guardar("solicitudes",s); return s; },
+  async subirDocumento(d, archivo){ d.blob=archivo; await DB.guardar("documentos",d); return d; },
+  async quitarDocumento(id){ await DB.borrar("documentos",id); },
+  async revisar(d){ await DB.guardar("documentos",d); return d; },
+  async acreditar(s){ await DB.guardar("solicitudes",s); return s; },
+  async archivo(id){ const d=(await DB.todo("documentos")).find(x=>x.id===id); return (d&&d.blob)||null; },
+  async accesoSST(){ return {ok:true, requiereClave:false}; }
+};
+
+function errorUsuario(msg, codigo){ const e=new Error(msg); e.usuario=true; e.codigo=codigo||""; return e; }
+
+async function llamar(accion, datos){
+  let r, j;
+  try{
+    r = await fetch(CFG.API_URL.trim(), {
+      method:"POST", redirect:"follow",
+      /* text/plain evita la consulta previa (CORS) que Apps Script no responde */
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(Object.assign({accion, modo:S.modo, ruc:S.ruc||"", clave:S.claveSST||""}, datos||{}))
+    });
+  }catch(e){ throw errorUsuario("No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo."); }
+  try{ j = await r.json(); }
+  catch(e){ throw errorUsuario("El servidor respondió de forma inesperada. Si el problema continúa, avisa al área de SST."); }
+  if(!j || !j.ok) throw errorUsuario((j&&j.error)||"El servidor rechazó la operación.", j&&j.codigo);
+  return j.datos;
+}
+function aBase64(archivo){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>res(String(fr.result).split(",")[1]||"");
+    fr.onerror=()=>rej(errorUsuario("No se pudo leer el archivo seleccionado."));
+    fr.readAsDataURL(archivo);
+  });
+}
+function base64ABlob(b64, mime){
+  const bin=atob(b64); const a=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i);
+  return new Blob([a],{type:mime||"application/octet-stream"});
+}
+
+const ApiRemota = {
+  async iniciar(){},
+  ingresar(ruc, razonSocial){ return llamar("empresa.ingresar",{ruc, razonSocial}); },
+  cargar(){
+    if(S.modo==="sst") return llamar("sst.datos");
+    if(!S.ruc) return Promise.resolve({empresas:[], solicitudes:[], documentos:[]});
+    return llamar("contratista.datos");
+  },
+  guardarSolicitud(s){ return llamar("solicitud.guardar",{solicitud:s}); },
+  async subirDocumento(d, archivo){
+    const base64=await aBase64(archivo);
+    return llamar("documento.subir",{documento:d, base64});
+  },
+  quitarDocumento(id){ return llamar("documento.quitar",{id}); },
+  revisar(d){ return llamar("documento.revisar",{id:d.id, revision:d.revision, comentario:d.comentario}); },
+  acreditar(s){ return llamar("solicitud.acreditar",{id:s.id, acreditada:s.acreditada}); },
+  async archivo(id){ const r=await llamar("documento.archivo",{id}); return base64ABlob(r.base64, r.mime); },
+  accesoSST(clave){ return llamar("sst.acceso",{clave}); }
+};
+const API = REMOTO ? ApiRemota : ApiLocal;
+
+async function recargar(){
+  const d = await API.cargar();
+  S.empresas=d.empresas||[]; S.solicitudes=d.solicitudes||[]; S.documentos=d.documentos||[];
+}
+function reemplazar(lista, obj){
+  const i=lista.findIndex(x=>x.id===obj.id); if(i>=0) lista[i]=obj; else lista.push(obj);
+}
+
+/* ---------------- espera y avisos ---------------- */
+let _espera=0, _tAviso=null;
+async function conEspera(texto, fn){
+  _espera++; document.body.classList.add("cargando");
+  const t=$("#toast"); t.className="toast"; t.textContent=texto; t.hidden=false;
+  try{ return await fn(); }
+  finally{
+    _espera--;
+    if(_espera===0){ document.body.classList.remove("cargando"); if(t.className==="toast") t.hidden=true; }
+  }
+}
+function avisar(msg, tipo){
+  const t=$("#toast"); t.className="toast "+(tipo||"info"); t.textContent=msg; t.hidden=false;
+  clearTimeout(_tAviso); _tAviso=setTimeout(()=>{ t.hidden=true; }, tipo==="error"?8000:4000);
+}
+async function ejecutar(fn){
+  try{ await fn(); }
+  catch(e){ console.error(e); avisar(e&&e.usuario ? e.message : "Ocurrió un error inesperado. Inténtalo de nuevo.", "error"); }
+}
+const solicitudActual = () => S.solicitudes.find(s=>s.id===S.solicitudId) || null;
+const docsDe = id => S.documentos.filter(d=>d.solicitudId===id);
+
+/* ---------------- reglas ---------------- */
+function requisitosAplicables(sol){
+  if(!sol) return [];
+  return REQUISITOS.filter(r=>{
+    if(!r.cond) return true;
+    if(r.cond==="ingreso")    return sol.vehicular==="ingreso";
+    if(r.cond==="conduce")    return sol.vehicular==="ingreso"||sol.vehicular==="conduce";
+    if(r.cond==="altoRiesgo") return (sol.altoRiesgo||[]).length>0;
+    if(r.cond==="quimicos")   return !!sol.quimicos;
+    if(r.cond==="equipos")    return !!sol.equipos;
+    return true;
+  });
+}
+
+/* estado de un archivo: ok | alerta | falla | pendiente */
+function estadoArchivo(d){
+  if(d.revision==="observado") return {clase:"alerta", txt:"Observado"};
+  const dias=diasPara(d.vencimiento);
+  if(dias!==null){
+    if(dias<0)             return {clase:"falla",  txt:`Vencido hace ${Math.abs(dias)} d`};
+    if(dias<=DIAS_ALERTA)  return {clase:"alerta", txt:`Vence en ${dias} d`};
+  }
+  if(d.revision==="aprobado") return {clase:"ok", txt:"Aprobado"};
+  return {clase:"pendiente", txt:"En revisión"};
+}
+
+function estadoRequisito(req, sol, docs){
+  const propios=docs.filter(d=>d.tipoId===req.id);
+  const emp=EMPRESAS[sol.contratante];
+  const n=sol.nTrabajadores||0;
+  let esperados=0, cubiertos=propios.length;
+
+  const hayConjunto = req.modalidades && propios.some(d=>d.meta.modalidad==="conjunto");
+
+  if(req.id==="cargos"){
+    /* Un trabajador puede firmar los tres documentos y escanearlos en un solo archivo.
+       Está cubierto cuando la unión de sus archivos abarca todos los cargos exigidos. */
+    esperados=n;
+    const porTitular={};
+    propios.forEach(d=>{
+      const t=normaliza(d.meta.titular||"");
+      porTitular[t]=porTitular[t]||new Set();
+      (d.meta.cargos||[]).forEach(c=>porTitular[t].add(c));
+    });
+    cubiertos=Object.values(porTitular).filter(s=>emp.cargos.every(c=>s.has(c.id))).length;
+  }else if(req.porPersona && !hayConjunto){
+    esperados=n;
+    cubiertos=new Set(propios.map(d=>normaliza(d.meta.titular||""))).size;
+  }
+
+  if(propios.length===0){
+    if(req.opcional) return {clase:"opcional", txt:"Muestra pendiente", propios, esperados, cubiertos};
+    return {clase:"falla", txt:"Sin cargar", propios, esperados, cubiertos};
+  }
+  if(esperados>0 && cubiertos<esperados)
+    return {clase:"alerta", txt:`Faltan ${esperados-cubiertos} de ${esperados}`, propios, esperados, cubiertos};
+  const orden={falla:3, alerta:2, pendiente:1, ok:0};
+  let peor={clase:"ok", txt:"Conforme"};
+  propios.forEach(d=>{ const e=estadoArchivo(d); if(orden[e.clase]>orden[peor.clase]) peor=e; });
+  if(peor.clase==="pendiente") return {clase:"pendiente", txt:"En revisión", propios, esperados, cubiertos};
+  return {clase:peor.clase, txt:peor.clase==="ok"?"Conforme":peor.txt, propios, esperados, cubiertos};
+}
+
+function resumen(sol){
+  const docs=docsDe(sol.id);
+  const reqs=requisitosAplicables(sol);
+  const r={total:reqs.length, conforme:0, faltante:0, alerta:0, vencido:0, observado:0, revision:0, opcional:0};
+  reqs.forEach(q=>{
+    const e=estadoRequisito(q,sol,docs);
+    if(e.clase==="ok") r.conforme++;
+    else if(e.clase==="opcional") r.opcional++;
+    else if(e.clase==="falla" && e.txt==="Sin cargar") r.faltante++;
+    else if(e.clase==="falla") r.vencido++;
+    else if(e.clase==="alerta") r.alerta++;
+    else r.revision++;
+  });
+  r.observado=docs.filter(d=>d.revision==="observado").length;
+  r.exigibles = r.total-r.opcional;              /* las muestras no bloquean */
+  r.pendientes = r.faltante+r.alerta+r.vencido+r.revision;
+  r.pct = r.exigibles? Math.round(r.conforme/r.exigibles*100):0;
+  return r;
+}
+
+/* ---------------- cabecera ---------------- */
+function pintarCabecera(){
+  document.documentElement.setAttribute("data-empresa", S.contratante||"grupopana");
+  const e=S.contratante?EMPRESAS[S.contratante]:null;
+  $("#hdMarca").textContent = e? e.nombre : "ACREDITACIÓN DE CONTRATISTAS";
+  $("#hdSub").textContent   = e? "Acreditación de contratistas y proveedores" : "Portal de documentos para proveedores y contratistas";
+  $("#hdInfo").innerHTML = (S.modo==="contratista" && S.ruc)
+    ? `${esc(S.razonSocial)}<br>RUC ${esc(S.ruc)}` : "";
+  $("#modoContratista").setAttribute("aria-pressed", S.modo==="contratista");
+  $("#modoSST").setAttribute("aria-pressed", S.modo==="sst");
+}
+
+/* ---------------- vistas ---------------- */
+function render(mantenerScroll){
+  const y=window.scrollY;
+  pintarCabecera();
+  const app=$("#app");
+  if(S.modo==="sst")            app.innerHTML = S.solicitudId? vistaSSTDetalle() : vistaSSTLista();
+  else if(S.vista==="acceso")   app.innerHTML = vistaAcceso();
+  else if(S.vista==="solicitudes") app.innerHTML = vistaSolicitudes();
+  else if(S.vista==="alcance")  app.innerHTML = vistaAlcance();
+  else                          app.innerHTML = vistaExpediente();
+  /* Tras cargar, quitar o revisar un documento la vista se redibuja entera;
+     conservar la posición evita devolver al usuario al inicio de la página. */
+  window.scrollTo(0, mantenerScroll ? y : 0);
+}
+
+function avisoModo(){
+  if(!REMOTO) return `<div class="aviso demo"><strong>Versión de demostración.</strong> Los documentos que cargues se guardan únicamente en este navegador, no se envían a Grupo Pana ni a Pana Autos. Sirve para revisar el flujo antes de conectarlo a un servidor.</div>`;
+  if(CFG.PILOTO===false) return "";
+  return `<div class="aviso demo"><strong>Piloto en prueba.</strong> Usa solo datos y documentos ficticios: esta versión todavía no funciona sobre la cuenta de la empresa.</div>`;
+}
+
+function vistaAcceso(){
+  return `
+  <div class="card">
+    <h1>Acreditación de contratistas</h1>
+    <p class="sub">Registra tu empresa y carga los documentos exigidos para ejecutar trabajos dentro de nuestras instalaciones.</p>
+    ${avisoModo()}
+    <div class="hr"></div>
+    <h2>¿Para qué empresa trabajarás?</h2>
+    <div class="placas">
+      ${Object.values(EMPRESAS).map(e=>`
+        <button class="placa" data-accion="contratante" data-id="${e.id}" aria-pressed="${S.contratante===e.id}">
+          <span class="pn">${esc(e.nombre)}</span>
+          <span class="pd">${esc(e.descripcion)} · ${e.sedes.length} sedes</span>
+        </button>`).join("")}
+    </div>
+    <div id="bloqueRuc" class="${S.contratante?"":"oculto"}">
+      <div class="hr"></div>
+      <h2>Datos de tu empresa</h2>
+      <p class="sub">El RUC identifica tu expediente. La razón social se guarda y se muestra siempre en mayúsculas.</p>
+      <div class="fila">
+        <div class="campo">
+          <label for="inRuc">RUC</label>
+          <input id="inRuc" class="num" inputmode="numeric" maxlength="11" placeholder="20123456789" value="${esc(S.ruc||"")}">
+          <div class="hint">11 dígitos. Se valida el dígito verificador, no el registro en SUNAT.</div>
+          <div class="err oculto" id="errRuc"></div>
+        </div>
+        <div class="campo">
+          <label for="inRazon">Razón social</label>
+          <input id="inRazon" placeholder="SERVICIOS INDUSTRIALES SAC" value="${esc(S.razonSocial||"")}" style="text-transform:uppercase">
+          <div class="err oculto" id="errRazon"></div>
+        </div>
+      </div>
+      <div class="acciones"><button class="btn" data-accion="entrar">Ingresar</button></div>
+    </div>
+  </div>`;
+}
+
+function vistaSolicitudes(){
+  const mias=S.solicitudes.filter(s=>s.ruc===S.ruc).sort((a,b)=>String(b.creado).localeCompare(String(a.creado)));
+  return `
+  <div class="card">
+    <h1>${esc(S.razonSocial)}</h1>
+    <p class="sub">RUC ${esc(S.ruc)} · Trabajos para ${esc(EMPRESAS[S.contratante].nombre)}</p>
+    ${avisoModo()}
+    <div class="acciones"><button class="btn" data-accion="nueva">Nueva solicitud de ingreso</button>
+    <button class="btn sec" data-accion="salir">Cambiar de empresa</button></div>
+  </div>
+  <div class="card">
+    <h2>Solicitudes registradas</h2>
+    ${mias.length===0 ? `<p class="vacio">Todavía no tienes solicitudes. Crea una para empezar a cargar documentos.</p>` : `
+    <table class="tabla">
+      <thead><tr><th>Trabajo</th><th>Sedes</th><th>Fechas</th><th>Avance</th><th></th></tr></thead>
+      <tbody>${mias.map(s=>{
+        const r=resumen(s);
+        return `<tr>
+          <td><b>${esc(s.actividad||"Sin descripción")}</b><br><span class="am">${esc(EMPRESAS[s.contratante].nombre)}</span></td>
+          <td>${esc((s.sedes||[]).join(", "))}</td>
+          <td class="num">${fechaTxt(s.inicio)} – ${fechaTxt(s.fin)}</td>
+          <td><span class="chip ${r.pct===100?"ok":r.pct>0?"alerta":"neutro"}">${r.conforme}/${r.exigibles} conformes</span></td>
+          <td><button class="lnk" data-accion="abrir" data-id="${s.id}">Abrir</button></td>
+        </tr>`;}).join("")}</tbody>
+    </table>`}
+  </div>`;
+}
+
+function vistaAlcance(){
+  const s=solicitudActual()||{};
+  const emp=EMPRESAS[S.contratante];
+  const sedes=s.sedes||[];
+  const ar=s.altoRiesgo||[];
+  return `
+  <div class="card">
+    <h1>Alcance del trabajo</h1>
+    <p class="sub">Con estas respuestas la aplicación arma la lista exacta de documentos que debes presentar.</p>
+    <div class="hr"></div>
+    <div class="campo">
+      <label for="inActividad">Trabajo o servicio a ejecutar</label>
+      <input id="inActividad" placeholder="Mantenimiento de extractores del taller" value="${esc(s.actividad||"")}">
+    </div>
+    <div class="fila3">
+      <div class="campo"><label for="inInicio">Inicio</label><input type="date" id="inInicio" value="${esc(s.inicio||"")}"></div>
+      <div class="campo"><label for="inFin">Fin previsto</label><input type="date" id="inFin" value="${esc(s.fin||"")}"></div>
+      <div class="campo"><label for="inTrab">N.° de trabajadores</label><input type="number" min="1" id="inTrab" class="num" value="${esc(s.nTrabajadores||"")}">
+        <div class="hint">Define cuántos DNI, CAMO y cargos se esperan.</div></div>
+    </div>
+    <div class="campo">
+      <label>Sedes donde trabajarás</label>
+      <label style="font-weight:400;display:flex;gap:.45rem;align-items:center;margin:.3rem 0">
+        <input type="checkbox" id="sedeTodas" style="width:auto" ${sedes.length===emp.sedes.length?"checked":""}> Todas las sedes de ${esc(emp.nombre)}
+      </label>
+      <div id="listaSedes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.3rem;margin-top:.3rem">
+        ${emp.sedes.map(x=>`<label style="font-weight:400;display:flex;gap:.45rem;align-items:center;font-size:.88rem">
+          <input type="checkbox" class="sede" value="${esc(x)}" style="width:auto" ${sedes.includes(x)?"checked":""}> ${esc(x)}</label>`).join("")}
+      </div>
+      <div class="err oculto" id="errSedes"></div>
+    </div>
+    <div class="hr"></div>
+    <h2>Vehículos</h2>
+    <div class="campo">
+      <select id="inVehicular">
+        <option value="no"      ${s.vehicular==="no"||!s.vehicular?"selected":""}>No habrá vehículos ni conducción</option>
+        <option value="conduce" ${s.vehicular==="conduce"?"selected":""}>Mi personal conducirá vehículos, pero no ingresarán a la sede</option>
+        <option value="ingreso" ${s.vehicular==="ingreso"?"selected":""}>Ingresarán vehículos a la sede</option>
+      </select>
+      <div class="hint">Si solo conducen, se pide licencia. Si ingresan vehículos, además revisión técnica y SOAT por cada placa.</div>
+    </div>
+    <div class="hr"></div>
+    <h2>Equipos y herramientas</h2>
+    <label style="font-weight:400;display:flex;gap:.45rem;align-items:center">
+      <input type="checkbox" id="inEquipos" style="width:auto" ${s.equipos?"checked":""}> Ingresaré con equipos o herramientas para ejecutar el trabajo
+    </label>
+    <div class="hint">Se pedirá la ficha técnica y el certificado de operatividad de cada equipo. Si solo entregas o retiras mercadería, deja esta casilla sin marcar.</div>
+    <div class="hr"></div>
+    <h2>Trabajos de alto riesgo</h2>
+    <p class="sub">Marca los que apliquen. Si no marcas ninguno, no se pedirá PETAR.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.3rem;margin-top:.4rem">
+      ${TIPOS_ALTO_RIESGO.map(t=>`<label style="font-weight:400;display:flex;gap:.45rem;align-items:center;font-size:.88rem">
+        <input type="checkbox" class="riesgo" value="${t.id}" style="width:auto" ${ar.includes(t.id)?"checked":""}> ${esc(t.nombre)}</label>`).join("")}
+    </div>
+    <div class="hr"></div>
+    <h2>Productos químicos</h2>
+    <label style="font-weight:400;display:flex;gap:.45rem;align-items:center">
+      <input type="checkbox" id="inQuimicos" style="width:auto" ${s.quimicos?"checked":""}> Usaré productos químicos dentro de las instalaciones
+    </label>
+    <div class="hint">Se pedirá la hoja de seguridad de cada producto.</div>
+    <div class="acciones">
+      <button class="btn" data-accion="guardarAlcance">Guardar y ver documentos</button>
+      <button class="btn sec" data-accion="volverLista">Volver</button>
+    </div>
+  </div>`;
+}
+
+function vistaExpediente(){
+  const s=solicitudActual(); if(!s) return vistaSolicitudes();
+  const emp=EMPRESAS[s.contratante];
+  const docs=docsDe(s.id);
+  const reqs=requisitosAplicables(s);
+  const r=resumen(s);
+  const secc=SECCIONES.map(sec=>{
+    const rs=reqs.filter(q=>q.seccion===sec.n);
+    if(rs.length===0) return `
+      <div class="secc"><div class="secc-cab"><h2>${sec.n}. ${esc(sec.titulo)}</h2>
+      <span class="chip neutro">No aplica</span></div>
+      <p class="vacio">Según el alcance declarado, esta sección no requiere documentos. Puedes cambiarlo en “Editar alcance”.</p></div>`;
+    return `
+    <div class="secc">
+      <div class="secc-cab"><h2>${sec.n}. ${esc(sec.titulo)}</h2>
+      <span class="sub">${esc(sec.nota)}</span></div>
+      ${rs.map(q=>fichaRequisito(q,s,docs,emp)).join("")}
+    </div>`;
+  }).join("");
+
+  return `
+  <div class="card">
+    <h1>${esc(s.actividad||"Solicitud de ingreso")}</h1>
+    <p class="sub">${esc(S.razonSocial)} · RUC ${esc(S.ruc)} · ${esc((s.sedes||[]).join(", "))} · ${fechaTxt(s.inicio)} a ${fechaTxt(s.fin)} · ${esc(s.nTrabajadores||0)} trabajadores</p>
+    ${avisoModo()}
+    <div class="medidor">
+      <div class="med-seg"><div class="mt">Requisitos conformes</div><div class="mv num">${r.conforme} <span style="font-size:.85rem;color:var(--tinta3)">de ${r.exigibles}</span></div>
+        <div class="barra"><i style="width:${r.pct}%"></i></div></div>
+      <div class="med-seg"><div class="mt">Sin cargar</div><div class="mv num">${r.faltante}</div></div>
+      <div class="med-seg"><div class="mt">Por vencer o incompletos</div><div class="mv num">${r.alerta}</div></div>
+      <div class="med-seg"><div class="mt">Vencidos</div><div class="mv num">${r.vencido}</div></div>
+      <div class="med-seg"><div class="mt">Muestras (no bloquean)</div><div class="mv num">${r.opcional}</div></div>
+      <div class="med-seg"><div class="mt">Observados por SST</div><div class="mv num">${r.observado}</div></div>
+    </div>
+    <div class="acciones">
+      <button class="btn sec" data-accion="editarAlcance">Editar alcance</button>
+      <button class="btn sec" data-accion="volverLista">Mis solicitudes</button>
+      <button class="btn sec" data-accion="imprimir">Imprimir resumen</button>
+    </div>
+  </div>
+  ${secc}
+  <p class="pie">Los documentos vencidos o observados deben reemplazarse antes del ingreso a la sede.</p>`;
+}
+
+function fichaRequisito(q,s,docs,emp){
+  const e=estadoRequisito(q,s,docs);
+  const propios=e.propios;
+  const clase = (e.clase==="pendiente"||e.clase==="opcional")?"":e.clase;
+  const chip  = e.clase==="ok"?"ok":e.clase==="alerta"?"alerta":e.clase==="falla"?"falla":"neutro";
+  let descargas="";
+  if(q.descargable){
+    descargas=`<div class="descarga">
+      <button class="iconbtn" data-accion="bajar" data-clave="${emp.risst.clave}" data-nombre="${esc(emp.risst.archivo)}">Descargar RISST (${esc(emp.risst.codigo)})</button>
+      <button class="iconbtn" data-accion="bajar" data-clave="${emp.cargosArchivo.clave}" data-nombre="${esc(emp.cargosArchivo.archivo)}">Descargar formatos de cargo</button>
+    </div>
+    <div class="hint">Formatos exigidos por ${esc(emp.nombre)}: ${emp.cargos.map(c=>esc(c.nombre)).join(" · ")}.</div>`;
+  }
+  const refer = q.referencial? `<div class="aviso">Se pide una <strong>muestra</strong> del formato que usa tu empresa, para revisarlo por adelantado. El ${q.id==="ats"?"ATS":"PETAR"} del día se entrega firmado en garita, antes de iniciar el trabajo, y no se carga aquí.</div>`:"";
+  const filas = propios.length===0
+    ? `<p class="vacio">Sin archivos cargados.</p>`
+    : `<div class="archivos">${propios.map(d=>filaArchivo(d,q,emp)).join("")}</div>`;
+  return `
+  <div class="doc" data-est="${clase}">
+    <div class="doc-cab">
+      <div style="flex:1">
+        <h3>${esc(q.nombre)}</h3>
+        <div class="doc-desc">${esc(q.desc)}</div>
+      </div>
+      <span class="chip ${chip}">${esc(e.txt)}</span>
+    </div>
+    ${refer}${descargas}${filas}
+    ${S.modo==="contratista"?`<div class="cargar">
+      <button class="btn sm" data-accion="agregar" data-req="${q.id}">Añadir documento</button>
+      ${q.multiple?`<span class="hint">Puedes cargar varios archivos en este requisito.</span>`:""}
+    </div>`:""}
+  </div>`;
+}
+
+function filaArchivo(d,q,emp){
+  const e=estadoArchivo(d);
+  const chip = e.clase==="ok"?"ok":e.clase==="alerta"?"alerta":e.clase==="falla"?"falla":"neutro";
+  const meta=[];
+  if(d.meta.modalidad==="conjunto") meta.push("registro conjunto");
+  if(d.meta.titular) meta.push(esc(d.meta.titular));
+  (q.campos||[]).forEach(c=>{
+    let v=d.meta[c.k]; if(!v||c.k==="titular") return;
+    if(c.k==="cargos"){
+      const ids=Array.isArray(v)?v:[v];
+      if(ids.length===0) return;
+      v = ids.length===emp.cargos.length ? `los ${ids.length} cargos firmados`
+        : ids.map(id=>{const cg=emp.cargos.find(x=>x.id===id); return cg?cg.nombre:id;}).join(", ");
+    }
+    if(c.k==="tipo"){ const t=TIPOS_ALTO_RIESGO.find(x=>x.id===v); v=t?t.nombre:v; }
+    meta.push(esc(v));
+  });
+  if(d.emision && !d.vencimiento) meta.push("emitido "+fechaTxt(d.emision));
+  if(d.vencimiento) meta.push("vence "+fechaTxt(d.vencimiento));
+  return `
+  <div class="arch">
+    <div class="an">
+      <b>${esc(d.nombre)}</b>
+      <span class="am">${meta.join(" · ")||"sin datos adicionales"} · ${pesoTxt(d.peso)}</span>
+      ${d.comentario?`<div class="obs"><b>Observación de SST:</b> ${esc(d.comentario)}</div>`:""}
+    </div>
+    <div class="aa">
+      <span class="chip ${chip}">${esc(e.txt)}</span>
+      <button class="iconbtn" data-accion="ver" data-id="${d.id}">Ver</button>
+      ${S.modo==="sst"
+        ? `<button class="iconbtn" data-accion="revisar" data-id="${d.id}">Revisar</button>`
+        : `<button class="iconbtn peligro" data-accion="quitar" data-id="${d.id}">Quitar</button>`}
+    </div>
+  </div>`;
+}
+
+/* ---------------- vistas SST ---------------- */
+function vistaSSTLista(){
+  const todas=S.solicitudes.slice().sort((a,b)=>String(b.creado).localeCompare(String(a.creado)));
+  return `
+  <div class="card">
+    <h1>Revisión de contratistas</h1>
+    <p class="sub">Expedientes recibidos, con su estado documental calculado.</p>
+    ${avisoModo()}
+  </div>
+  <div class="card">
+    ${todas.length===0?`<p class="vacio">Aún no hay solicitudes. Cambia a modo Contratista para registrar una.</p>`:`
+    <table class="tabla">
+      <thead><tr><th>Contratista</th><th>Trabajo</th><th>Sedes</th><th>Estado</th><th></th></tr></thead>
+      <tbody>${todas.map(s=>{
+        const r=resumen(s);
+        const emp=S.empresas.find(e=>e.ruc===s.ruc);
+        const chip = r.vencido>0?"falla": (r.faltante>0||r.alerta>0)?"alerta": r.pendientes===0?"ok":"neutro";
+        const txt  = r.vencido>0?`${r.vencido} vencidos`: r.faltante>0?`${r.faltante} sin cargar`: r.alerta>0?`${r.alerta} por revisar`: r.pendientes===0?"Completo":"En revisión";
+        return `<tr>
+          <td><b>${esc(emp?emp.razonSocial:"—")}</b><br><span class="am num">RUC ${esc(s.ruc)}</span></td>
+          <td>${esc(s.actividad||"—")}<br><span class="am">${esc(EMPRESAS[s.contratante].nombre)}</span></td>
+          <td>${esc((s.sedes||[]).join(", "))}</td>
+          <td><span class="chip ${chip}">${esc(txt)}</span></td>
+          <td><button class="lnk" data-accion="abrirSST" data-id="${s.id}">Revisar</button></td>
+        </tr>`;}).join("")}</tbody>
+    </table>`}
+  </div>`;
+}
+
+function vistaSSTDetalle(){
+  const s=solicitudActual(); if(!s) return vistaSSTLista();
+  const emp=EMPRESAS[s.contratante];
+  const empCon=S.empresas.find(e=>e.ruc===s.ruc);
+  const docs=docsDe(s.id);
+  const reqs=requisitosAplicables(s);
+  const r=resumen(s);
+  const listo = r.pendientes===0 && r.exigibles>0;
+  const secc=SECCIONES.map(sec=>{
+    const rs=reqs.filter(q=>q.seccion===sec.n);
+    if(rs.length===0) return "";
+    return `<div class="secc"><div class="secc-cab"><h2>${sec.n}. ${esc(sec.titulo)}</h2></div>
+      ${rs.map(q=>fichaRequisito(q,s,docs,emp)).join("")}</div>`;
+  }).join("");
+  return `
+  <div class="card">
+    <h1>${esc(empCon?empCon.razonSocial:"—")}</h1>
+    <p class="sub">RUC ${esc(s.ruc)} · ${esc(s.actividad||"")} · ${esc((s.sedes||[]).join(", "))} · ${fechaTxt(s.inicio)} a ${fechaTxt(s.fin)} · ${esc(s.nTrabajadores||0)} trabajadores</p>
+    <div class="medidor">
+      <div class="med-seg"><div class="mt">Requisitos conformes</div><div class="mv num">${r.conforme} <span style="font-size:.85rem;color:var(--tinta3)">de ${r.exigibles}</span></div><div class="barra"><i style="width:${r.pct}%"></i></div></div>
+      <div class="med-seg"><div class="mt">Sin cargar</div><div class="mv num">${r.faltante}</div></div>
+      <div class="med-seg"><div class="mt">Vencidos</div><div class="mv num">${r.vencido}</div></div>
+      <div class="med-seg"><div class="mt">Muestras (no bloquean)</div><div class="mv num">${r.opcional}</div></div>
+      <div class="med-seg"><div class="mt">Acreditación</div><div class="mv">${s.acreditada?`<span class="chip ok">Autorizada</span>`:`<span class="chip neutro">Pendiente</span>`}</div></div>
+    </div>
+    ${!listo?`<div class="aviso">La acreditación no puede autorizarse mientras existan requisitos sin cargar, vencidos u observados.</div>`:""}
+    <div class="acciones">
+      <button class="btn" data-accion="acreditar" ${listo?"":"disabled"}>${s.acreditada?"Quitar autorización":"Autorizar ingreso"}</button>
+      <button class="btn sec" data-accion="volverSST">Volver al listado</button>
+      <button class="btn sec" data-accion="imprimir">Imprimir expediente</button>
+    </div>
+  </div>
+  ${secc}`;
+}
+
+/* ---------------- modales ---------------- */
+function cerrarModal(){ $("#velo").hidden=true; $("#modal").innerHTML=""; }
+
+function modalAgregar(reqId){
+  const s=solicitudActual(); const q=REQUISITOS.find(x=>x.id===reqId);
+  const emp=EMPRESAS[s.contratante];
+  const campos=(q.campos||[]).map(c=>{
+    if(c.tipo==="select")
+      return `<div class="campo"><label>${esc(c.n)}${c.req?" *":""}</label><select data-campo="${c.k}">${c.opciones.map(o=>`<option>${esc(o)}</option>`).join("")}</select></div>`;
+    if(c.tipo==="cargosMulti")
+      return `<div class="campo"><label>${esc(c.n)}${c.req?" *":""}</label>
+        <div style="display:grid;gap:.25rem;margin-top:.15rem">
+        ${emp.cargos.map(o=>`<label style="font-weight:400;display:flex;gap:.45rem;align-items:center;font-size:.88rem">
+          <input type="checkbox" class="cargoChk" value="${o.id}" style="width:auto" checked> ${esc(o.nombre)}</label>`).join("")}
+        </div>
+        <div class="hint">Desmarca los que no estén incluidos en este archivo. Si el trabajador firmó todos en un mismo juego, déjalos marcados y sube un solo escaneo.</div></div>`;
+    if(c.tipo==="selectRiesgo")
+      return `<div class="campo"><label>${esc(c.n)}${c.req?" *":""}</label><select data-campo="${c.k}" id="selRiesgo">${(s.altoRiesgo||[]).map(id=>{const t=TIPOS_ALTO_RIESGO.find(x=>x.id===id);return `<option value="${id}">${esc(t?t.nombre:id)}</option>`;}).join("")}</select></div>`;
+    if(c.tipo==="selectAnexo")
+      return `<div class="campo"><label>${esc(c.n)}${c.req?" *":""}</label><select data-campo="${c.k}" id="selAnexo"></select>
+              <div class="hint">Los del primer grupo se exigen en todo trabajo de alto riesgo. Los del segundo son referenciales hasta contrastarlos con la cartilla oficial.</div></div>`;
+    if(c.tipo==="number")
+      return `<div class="campo"><label>${esc(c.n)}</label><input type="number" class="num" data-campo="${c.k}" value="${new Date().getFullYear()}"></div>`;
+    return `<div class="campo"><label>${esc(c.n)}${c.req?" *":""}</label><input data-campo="${c.k}"></div>`;
+  }).join("");
+  const venc = !q.vence ? "" : q.vence==="emision" ? `
+    <div class="campo"><label>Fecha de emisión *</label><input type="date" id="mEmision">
+      <div class="hint">SST evalúa la vigencia a partir de esta fecha.</div></div>` : `
+    <div class="fila">
+      <div class="campo"><label>Fecha de emisión</label><input type="date" id="mEmision"></div>
+      <div class="campo"><label>Fecha de vencimiento${q.vence==="obligatorio"?" *":""}</label><input type="date" id="mVenc">
+        <div class="hint">${q.vence==="obligatorio"?"Obligatoria: de aquí sale la alerta de vencimiento.":"Opcional, si el documento tiene vigencia."}</div></div>
+    </div>`;
+  const modalidad = q.modalidades? `
+    <div class="campo"><label>Forma de presentación *</label>
+      <select id="mModalidad">
+        <option value="individual">${esc(q.textoIndividual||"Por trabajador")}</option>
+        <option value="conjunto">${esc(q.textoConjunto||"Documento conjunto para todo el personal")}</option>
+      </select></div>
+    <div class="campo" id="bloqueTitular"><label>Trabajador *</label><input id="mTitular" style="text-transform:uppercase"></div>`:"";
+  $("#modal").innerHTML=`
+    <h2>${esc(q.nombre)}</h2>
+    <p class="sub">${esc(q.desc)}</p>
+    <div class="hr"></div>
+    ${modalidad}${campos}${venc}
+    <div class="campo"><label>Archivo *</label><input type="file" id="mFile" accept=".pdf,.jpg,.jpeg,.png">
+      <div class="hint">PDF o imagen, hasta 10 MB.</div></div>
+    <div class="err oculto" id="mErr"></div>
+    <div class="acciones">
+      <button class="btn" data-accion="guardarDoc" data-req="${reqId}">Cargar documento</button>
+      <button class="btn sec" data-accion="cerrar">Cancelar</button>
+    </div>`;
+  $("#velo").hidden=false;
+  const md=document.getElementById("mModalidad");
+  if(md){ const alterna=()=>{ document.getElementById("bloqueTitular").classList.toggle("oculto", md.value!=="individual"); };
+    alterna(); md.addEventListener("change",alterna); }
+  const sr=document.getElementById("selRiesgo"), sa=document.getElementById("selAnexo");
+  if(sa){ const pinta=()=>{ const t=sr?sr.value:"otro";
+      /* primero los exigidos en todo trabajo de alto riesgo, luego los propios del tipo */
+      sa.innerHTML =
+        `<optgroup label="Para todo trabajo de alto riesgo">`+
+        ANEXOS_COMUNES.map(x=>`<option>${esc(x)}</option>`).join("")+`</optgroup>`+
+        `<optgroup label="Según el tipo de trabajo">`+
+        (ANEXOS_ALTO_RIESGO[t]||[]).map(x=>`<option>${esc(x)}</option>`).join("")+`</optgroup>`; };
+    pinta(); if(sr) sr.addEventListener("change",pinta); }
+}
+
+function modalRevisar(id){
+  const d=S.documentos.find(x=>x.id===id);
+  $("#modal").innerHTML=`
+    <h2>Revisión del documento</h2>
+    <p class="sub">${esc(d.nombre)}</p>
+    <div class="hr"></div>
+    <div class="campo"><label>Resultado</label>
+      <select id="rEstado">
+        <option value="aprobado"  ${d.revision==="aprobado"?"selected":""}>Aprobado</option>
+        <option value="observado" ${d.revision==="observado"?"selected":""}>Observado — debe subsanarse</option>
+        <option value="pendiente" ${!d.revision||d.revision==="pendiente"?"selected":""}>Pendiente de revisión</option>
+      </select></div>
+    <div class="campo"><label>Observación para el contratista</label>
+      <textarea id="rComent" rows="3" placeholder="Indica qué debe corregir y por qué.">${esc(d.comentario||"")}</textarea></div>
+    <div class="acciones">
+      <button class="btn" data-accion="guardarRevision" data-id="${id}">Guardar revisión</button>
+      <button class="btn sec" data-accion="cerrar">Cancelar</button>
+    </div>`;
+  $("#velo").hidden=false;
+}
+
+/* ---------------- acciones ---------------- */
+async function accion(a, b){
+
+  if(a==="contratante"){
+    const r=document.getElementById("inRuc"), z=document.getElementById("inRazon");
+    if(r) S.ruc=r.value.trim(); if(z) S.razonSocial=mayus(z.value);
+    S.contratante=b.dataset.id; render(); return;
+  }
+  if(a==="entrar"){
+    const ruc=$("#inRuc").value.trim(), razon=mayus($("#inRazon").value);
+    let ok=true;
+    const eR=$("#errRuc"), eZ=$("#errRazon");
+    eR.classList.add("oculto"); eZ.classList.add("oculto");
+    if(!rucValido(ruc)){ eR.textContent="RUC inválido. Revisa los 11 dígitos."; eR.classList.remove("oculto"); ok=false; }
+    if(razon.length<3){ eZ.textContent="Escribe la razón social."; eZ.classList.remove("oculto"); ok=false; }
+    if(!ok) return;
+    const r=await conEspera("Verificando…", ()=>API.ingresar(ruc, razon));
+    if(r.estado==="conflicto"){
+      if(!confirm(`Este RUC ya está registrado como:\n\n${r.razonSocial}\n\n¿Continuar con ese nombre?`)) return;
+    }
+    S.razonSocial=r.razonSocial; S.ruc=ruc;
+    await conEspera("Cargando…", recargar);
+    S.vista="solicitudes"; render(); return;
+  }
+  if(a==="salir"){ S.ruc=null; S.razonSocial=null; S.contratante=null; S.solicitudId=null; S.vista="acceso"; S.empresas=[]; S.solicitudes=[]; S.documentos=[]; render(); return; }
+  if(a==="nueva"){
+    const s={id:uid(), ruc:S.ruc, contratante:S.contratante, creado:Date.now(),
+             actividad:"", sedes:[], inicio:"", fin:"", nTrabajadores:1,
+             vehicular:"no", altoRiesgo:[], quimicos:false, equipos:false, acreditada:false};
+    const g=await conEspera("Creando solicitud…", ()=>API.guardarSolicitud(s));
+    reemplazar(S.solicitudes, g);
+    S.solicitudId=g.id; S.vista="alcance"; render(); return;
+  }
+  if(a==="abrir"){ S.solicitudId=b.dataset.id; S.vista="expediente"; render(); return; }
+  if(a==="abrirSST"){
+    S.solicitudId=b.dataset.id;
+    const sol=solicitudActual(); if(sol) S.contratante=sol.contratante;
+    render(); return;
+  }
+  if(a==="volverSST"){ S.solicitudId=null; await conEspera("Actualizando…", recargar); render(); return; }
+  if(a==="volverLista"){ S.vista="solicitudes"; S.solicitudId=null; await conEspera("Actualizando…", recargar); render(); return; }
+  if(a==="editarAlcance"){ S.vista="alcance"; render(); return; }
+  if(a==="imprimir"){ window.print(); return; }
+
+  if(a==="guardarAlcance"){
+    const sedes=[...document.querySelectorAll(".sede:checked")].map(x=>x.value);
+    if(sedes.length===0){ const e=$("#errSedes"); e.textContent="Selecciona al menos una sede."; e.classList.remove("oculto"); return; }
+    /* se trabaja sobre una copia: si el guardado falla, lo mostrado no cambia */
+    const s=Object.assign({}, solicitudActual());
+    s.actividad=$("#inActividad").value.trim();
+    s.inicio=$("#inInicio").value; s.fin=$("#inFin").value;
+    s.nTrabajadores=parseInt($("#inTrab").value,10)||1;
+    s.sedes=sedes; s.vehicular=$("#inVehicular").value;
+    s.altoRiesgo=[...document.querySelectorAll(".riesgo:checked")].map(x=>x.value);
+    s.quimicos=$("#inQuimicos").checked;
+    s.equipos=$("#inEquipos").checked;
+    const g=await conEspera("Guardando…", ()=>API.guardarSolicitud(s));
+    reemplazar(S.solicitudes, g);
+    S.vista="expediente"; render(); return;
+  }
+
+  if(a==="agregar"){ modalAgregar(b.dataset.req); return; }
+  if(a==="cerrar"){ cerrarModal(); return; }
+
+  if(a==="guardarDoc"){
+    const q=REQUISITOS.find(x=>x.id===b.dataset.req);
+    const f=$("#mFile").files[0]; const err=$("#mErr");
+    err.classList.add("oculto");
+    if(!f){ err.textContent="Selecciona un archivo."; err.classList.remove("oculto"); return; }
+    if(f.size>10*1024*1024){ err.textContent="El archivo supera los 10 MB."; err.classList.remove("oculto"); return; }
+    const meta={};
+    let falta=null;
+    (q.campos||[]).forEach(c=>{
+      if(c.tipo==="cargosMulti"){
+        const marcados=[...document.querySelectorAll(".cargoChk:checked")].map(x=>x.value);
+        if(c.req && marcados.length===0) falta=c.n;
+        meta[c.k]=marcados; return;
+      }
+      const el=document.querySelector(`[data-campo="${c.k}"]`);
+      const v=el?el.value.trim():"";
+      if(c.req && !v) falta=c.n;
+      meta[c.k]= (c.k==="titular")? mayus(v) : v;
+    });
+    if(q.modalidades){
+      meta.modalidad=$("#mModalidad").value;
+      if(meta.modalidad==="individual"){
+        const t=mayus($("#mTitular").value);
+        if(!t) falta="Trabajador";
+        meta.titular=t;
+      }
+    }
+    if(falta){ err.textContent=`Completa el campo “${falta}”.`; err.classList.remove("oculto"); return; }
+    const emi=$("#mEmision")?$("#mEmision").value:"";
+    const venc=$("#mVenc")?$("#mVenc").value:"";
+    if(q.vence==="obligatorio" && !venc){ err.textContent="La fecha de vencimiento es obligatoria para este documento."; err.classList.remove("oculto"); return; }
+    if(q.vence==="emision" && !emi){ err.textContent="La fecha de emisión es obligatoria para este documento."; err.classList.remove("oculto"); return; }
+    const d={id:uid(), solicitudId:S.solicitudId, tipoId:q.id, nombre:f.name, peso:f.size,
+             mime:f.type, meta, emision:emi, vencimiento:venc,
+             revision:"pendiente", comentario:"", creado:Date.now()};
+    /* si la subida falla, el modal sigue abierto con lo ya escrito */
+    b.disabled=true;
+    try{
+      const g=await conEspera("Subiendo documento…", ()=>API.subirDocumento(d, f));
+      reemplazar(S.documentos, g); cerrarModal(); render(true);
+    }catch(e){
+      b.disabled=false;
+      err.textContent = e&&e.usuario ? e.message : "No se pudo subir el documento. Inténtalo de nuevo.";
+      err.classList.remove("oculto");
+    }
+    return;
+  }
+
+  if(a==="quitar"){
+    if(!confirm("¿Quitar este documento del expediente?")) return;
+    const id=b.dataset.id;
+    await conEspera("Quitando…", ()=>API.quitarDocumento(id));
+    S.documentos=S.documentos.filter(x=>x.id!==id); render(true); return;
+  }
+  if(a==="ver"){
+    const d=S.documentos.find(x=>x.id===b.dataset.id); if(!d) return;
+    /* la ventana se abre dentro del clic; si no, el navegador la bloquea al llegar el archivo */
+    const w = d.blob ? null : window.open("", "_blank");
+    let blob;
+    try{ blob = d.blob || await conEspera("Abriendo…", ()=>API.archivo(d.id)); }
+    catch(e){ if(w) w.close(); throw e; }
+    if(!blob){ if(w) w.close(); avisar("El archivo no está disponible en este navegador.", "error"); return; }
+    const url=URL.createObjectURL(blob);
+    const destino = w || window.open(url, "_blank");
+    if(w) w.location.href=url;
+    if(destino){ setTimeout(()=>URL.revokeObjectURL(url), 60000); }
+    else { URL.revokeObjectURL(url); descargar(blob, d.nombre); }  /* visor sin pestañas nuevas */
+    return;
+  }
+  if(a==="bajar"){
+    const nombre=b.dataset.nombre, ruta="documentos/"+encodeURIComponent(nombre);
+    let blob=null;
+    try{ const r=await conEspera("Descargando…", ()=>fetch(ruta)); if(r.ok) blob=await r.blob(); }catch(e){}
+    if(blob) descargar(blob, nombre);
+    else if(!window.open(ruta, "_blank")) avisar("No se encontró el archivo "+nombre+".", "error");
+    return;
+  }
+  if(a==="revisar"){ modalRevisar(b.dataset.id); return; }
+  if(a==="guardarRevision"){
+    const d=S.documentos.find(x=>x.id===b.dataset.id);
+    const c=Object.assign({}, d, {revision:$("#rEstado").value, comentario:$("#rComent").value.trim()});
+    const g=await conEspera("Guardando revisión…", ()=>API.revisar(c));
+    reemplazar(S.documentos, Object.assign({}, d, g)); cerrarModal(); render(true); return;
+  }
+  if(a==="acreditar"){
+    const s=Object.assign({}, solicitudActual()); s.acreditada=!s.acreditada;
+    const g=await conEspera("Guardando…", ()=>API.acreditar(s));
+    reemplazar(S.solicitudes, Object.assign({}, s, g)); render(true); return;
+  }
+  if(a==="claveSST"){
+    const c=$("#inClave").value, e=$("#errClave");
+    e.classList.add("oculto");
+    const acc=await conEspera("Verificando…", ()=>API.accesoSST(c));
+    if(!acc.ok){ e.textContent="Clave incorrecta."; e.classList.remove("oculto"); $("#inClave").select(); return; }
+    S.claveSST=c; cerrarModal(); await entrarSST(); return;
+  }
+}
+
+document.addEventListener("click", ev=>{
+  const b=ev.target.closest("[data-accion]"); if(!b || b.disabled) return;
+  ejecutar(()=>accion(b.dataset.accion, b));
+});
+
+/* ---------------- acceso SST ---------------- */
+function modalClaveSST(){
+  $("#modal").innerHTML=`
+    <h2>Acceso del área de SST</h2>
+    <p class="sub">Ingresa la clave de SST para revisar los expedientes.</p>
+    <div class="hr"></div>
+    <div class="campo"><label for="inClave">Clave</label>
+      <input type="password" id="inClave" autocomplete="current-password"></div>
+    <div class="err oculto" id="errClave"></div>
+    <div class="acciones">
+      <button class="btn" data-accion="claveSST" id="btnClave">Ingresar</button>
+      <button class="btn sec" data-accion="cerrar">Cancelar</button>
+    </div>`;
+  $("#velo").hidden=false;
+  setTimeout(()=>{ const i=$("#inClave"); if(i) i.focus(); }, 0);
+}
+async function entrarSST(){
+  S.modo="sst"; S.solicitudId=null;
+  try{ await conEspera("Cargando expedientes…", recargar); }
+  catch(e){ S.modo="contratista"; S.claveSST=""; render(); throw e; }
+  render();
+}
+
+/* checkbox "todas las sedes" y velo */
+document.addEventListener("change", ev=>{
+  if(ev.target.id==="sedeTodas"){
+    document.querySelectorAll(".sede").forEach(c=>c.checked=ev.target.checked);
+  }
+  if(ev.target.classList.contains("sede")){
+    const t=document.querySelectorAll(".sede"), m=document.querySelectorAll(".sede:checked");
+    const st=document.getElementById("sedeTodas"); if(st) st.checked = t.length===m.length;
+  }
+});
+$("#velo").addEventListener("click", e=>{ if(e.target.id==="velo") cerrarModal(); });
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape") cerrarModal();
+  if(e.key==="Enter" && e.target && e.target.id==="inClave"){ const bt=$("#btnClave"); if(bt) bt.click(); }
+});
+$("#modoContratista").addEventListener("click", ()=>ejecutar(async ()=>{
+  if(S.modo==="contratista") return;
+  S.modo="contratista"; S.solicitudId=null; S.vista=S.ruc?"solicitudes":"acceso";
+  await conEspera("Cargando…", recargar); render();
+}));
+$("#modoSST").addEventListener("click", ()=>ejecutar(async ()=>{
+  if(S.modo==="sst") return;
+  const acc=await conEspera("Verificando…", ()=>API.accesoSST(S.claveSST||""));
+  if(acc.ok) return entrarSST();
+  modalClaveSST();
+}));
+
+/* arranque */
+ejecutar(async ()=>{
+  await API.iniciar();
+  if(!REMOTO) await recargar();   /* en el servidor no hay nada que cargar antes de ingresar */
+  render();
+});
+</script>
+</body>
+</html>
